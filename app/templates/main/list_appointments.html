@@ -1,0 +1,20 @@
+{% extends "menu.html" %}
+
+{% block content %}
+{% for appointment in appointments %}
+<hr/>
+
+Title: <a href={{url_for('main.single_appointment', id=appointment.task_id)}}>{{appointment.title}}</a><br/>
+ID: {{appointment.task_id}}<br/>
+Name: {{appointment.date_time}}<br/>
+Duration: {{appointment.duration}}<br/>
+Location: {{appointment.location}}<br/>
+Customer Name: {{appointment.customer_name}}<br/>
+Notes: {{appointment.notes}}<br/>
+Status: {{appointment.status}}
+<br/><a href={{url_for('main.edit_appointment', id=appointment.task_id)}}>(Edit this appointment)</a>
+<br/><a href={{url_for('main.delete_appointment', id=appointment.task_id)}}>(Delete this appointment)</a>
+
+<hr/>
+{% endfor %}
+{% endblock %}
