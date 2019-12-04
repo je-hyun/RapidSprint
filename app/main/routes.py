@@ -1,8 +1,9 @@
-from flask import render_template,  redirect, url_for
+from flask import render_template,  redirect, url_for, flash
 from app.main import bp
 from app import db
-from app.main.forms import TaskForm
-from app.models import Task
+from app.main.forms import TaskForm, AppointmentForm, SearchForm
+from app.models import Task, Appointment
+import datetime
 
 
 # Main route of the applicaitons.
@@ -69,7 +70,64 @@ def edit_task(task_id):
     current_task = Task.query.filter_by(task_id=task_id).first_or_404()
 
     # update the form model in order to populate the html form.
-    form.task_desc.data =     current_task.task_desc
+    form.task_desc.data = current_task.task_desc
     form.task_status_completed.data = current_task.task_status
 
     return render_template("main/todolist_edit_view.html",form=form, task_id = task_id)
+
+@bp.route('/add_appointment', methods=['GET','POST'])
+def add_appointment():
+    form = AppointmentForm()
+    if form.validate_on_submit():
+        new_appointment = Appointment()
+        new_appointment.title=form.title.data
+        new_appointment.date_time = datetime.datetime.combine(form.start_date.data,form.start_time.data)
+        new_appointment.duration=form.duration.data
+        new_appointment.location=form.location.data
+        new_appointment.customer_name=form.customer_name.data
+        new_appointment.notes=form.notes.data
+        new_appointment.status=form.status.data
+
+        db.session.add(new_appointment)
+        db.session.commit()
+        flash("Added the appointment")
+        return redirect(url_for('main.add_appointment'))
+    return render_template("main/add_appointment.html",form=form)
+
+@bp.route('/single_appointment/<int:id>', methods=['GET','POST'])
+def single_appointment(id):
+    appointment = Appointment.query.get(id)
+    return render_template("main/single_appointment.html", appointment=appointment)
+
+
+@bp.route('/list_appointments', methods=['GET','POST'])
+def list_appointments():
+    appointments = Appointment.query.all()
+    return render_template("main/list_appointments.html", appointments=appointments)
+
+@bp.route('/delete_appointment/<int:id>', methods=['GET','POST'])
+def delete_appointment(id):
+    db.session.delete(Appointment.query.get(id))
+    db.session.commit()
+    flash("Appointment with id " + str(id) + " deleted.")
+    return redirect(url_for('main.list_appointments'))
+
+
+@bp.route('/edit_appointment/<int:id>', methods=['GET','POST'])
+def edit_appointment(id):
+    form = AppointmentForm()
+    appointment = Appointment.query.get(id)
+    if form.validate_on_submit():
+        appointment.title=form.title.data
+        appointment.date_time = datetime.datetime.combine(form.start_date.data,form.start_time.data)
+        appointment.duration=form.duration.data
+        appointment.location=form.location.data
+        appointment.customer_name=form.customer_name.data
+        appointment.notes=form.notes.data
+        appointment.status=form.status.data
+
+        db.session.add(appointment)
+        db.session.commit()
+        flash("Added the appointment")
+        return redirect(url_for('main.single_appointment', id=id))
+    return render_template("main/edit_appointment.html",form=form, appointment=appointment)

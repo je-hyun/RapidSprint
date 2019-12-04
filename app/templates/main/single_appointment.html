@@ -1,0 +1,16 @@
+{% extends "menu.html" %}
+
+{% block content %}
+<hr/>
+Title: {{appointment.title}}<br/>
+Name: {{appointment.date_time}}<br/>
+Duration: {{appointment.duration}}<br/>
+Location: {{appointment.location}}<br/>
+Customer Name: {{appointment.customer_name}}<br/>
+Notes: {{appointment.notes}}<br/>
+Status: {{appointment.status}}
+<br/><a href={{url_for('main.edit_appointment', id=appointment.task_id)}}>(Edit this appointment)</a>
+<br/><a href={{url_for('main.delete_appointment', id=appointment.task_id)}}>(Delete this appointment)</a>
+
+<hr/>
+{% endblock %}
