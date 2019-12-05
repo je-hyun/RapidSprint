@@ -1,6 +1,23 @@
 {% extends "menu.html" %}
 
-{% block content %}
+{% block main_content %}
+
+{% if filter != "hide" %}
+<div class="dropdown">
+<button class="btn btn-primary dropdown-toggle" type="button" id="about-us" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+Filter Options (Current filter: {{filter}})
+<span class="caret"></span>
+</button>
+<ul class="dropdown-menu" aria-labelledby="about-us">
+<li><a href={{url_for("main.list_appointments", filter="today")}}>Due today</a></li>
+<li><a href={{url_for("main.list_appointments", filter="this_week")}}>Due this Week</a></li>
+<li><a href={{url_for("main.list_appointments", filter="overdue")}}>Overdue</a></li>
+<li><a href={{url_for("main.list_appointments", filter="completed")}}>Completed</a></li>
+</ul>
+</div>
+{% endif %}
+
+
 {% for appointment in appointments %}
 <hr/>
 

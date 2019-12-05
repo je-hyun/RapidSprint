@@ -1,0 +1,20 @@
+{% extends "menu.html" %}
+
+{% block main_content %}
+<form method="POST" action="{{url_for('main.search_appointment')}}" >
+<h1>Search Appointments</h1>
+{{form.hidden_tag()}}
+
+{{form.searchbox()}}<br>
+{% for error in form.searchbox.errors %}
+<span style="color: red;">[{{ error }}]</span>
+{% endfor %}
+
+{{form.search_type()}}<br>
+{% for error in form.search_type.errors %}
+<span style="color: red;">[{{ error }}]</span>
+{% endfor %}
+
+{{form.submit()}}
+</form>
+{% endblock %}

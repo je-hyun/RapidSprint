@@ -1,7 +1,7 @@
 
 # import flask_wtf
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, TextAreaField, IntegerField
+from wtforms import StringField, SubmitField, SelectField, TextAreaField, IntegerField, RadioField
 from wtforms.validators import ValidationError, DataRequired, Length
 from wtforms.fields.html5 import DateField, TimeField
 import datetime
@@ -9,6 +9,7 @@ import datetime
 
 class SearchForm(FlaskForm):
     searchbox = StringField('Search', validators=[DataRequired()])
+    search_type = RadioField('Search by', choices=[('name','Customer Name'),('title','Appointment Title')], validators=[DataRequired()])
     submit = SubmitField('submit')
 
 class TaskForm(FlaskForm):

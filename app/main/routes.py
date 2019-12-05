@@ -4,6 +4,39 @@ from app import db
 from app.main.forms import TaskForm, AppointmentForm, SearchForm
 from app.models import Task, Appointment
 import datetime
+from sqlalchemy import func
+
+@bp.route('/list_appointments/')
+@bp.route('/list_appointments/<string:filter>', methods=['GET','POST'])
+def list_appointments(filter="None"):
+    '''
+    - Filter which appointments are within today
+    - Filter within week
+    - Filter overdue
+    - Filter completed
+    '''
+    appointments = Appointment.query.order_by(Appointment.date_time)
+    current_date = datetime.datetime.now().date()
+    datetime_now = datetime.datetime.now()
+
+    start_of_day = datetime.time(0,0,0)
+    end_of_day = datetime.time(23,59,59)
+
+    start_of_week_day = datetime.datetime.today() - datetime.timedelta(days=datetime.datetime.today().isoweekday() % 7)
+    end_of_week_day = start_of_week_day + datetime.timedelta(days=7)
+
+    if filter == "today":
+        appointments = appointments.filter(Appointment.date_time >= datetime.datetime.combine(current_date,start_of_day), Appointment.date_time <= datetime.datetime.combine(current_date,end_of_day))
+    elif filter == "this_week":
+        appointments = appointments.filter(Appointment.date_time >= datetime.datetime.combine(start_of_week_day,start_of_day), Appointment.date_time <= datetime.datetime.combine(end_of_week_day,end_of_day))
+    elif filter == "overdue":
+        appointments = appointments.filter(Appointment.date_time <= current_date)
+        appointments = appointments.filter(func.lower(Appointment.status) != "complete")
+    elif filter == "completed":
+        appointments = appointments.filter(func.lower(Appointment.status) == "complete")
+
+    appointments = appointments.all()
+    return render_template("main/list_appointments.html", appointments=appointments, filter=filter)
 
 
 # Main route of the applicaitons.
@@ -43,7 +76,6 @@ def remove_task(task_id):
     # Query database, remove items
     Task.query.filter(Task.task_id == task_id).delete()
     db.session.commit()
-
     return redirect(url_for('main.todolist'))
 
 
@@ -99,12 +131,6 @@ def single_appointment(id):
     appointment = Appointment.query.get(id)
     return render_template("main/single_appointment.html", appointment=appointment)
 
-
-@bp.route('/list_appointments', methods=['GET','POST'])
-def list_appointments():
-    appointments = Appointment.query.all()
-    return render_template("main/list_appointments.html", appointments=appointments)
-
 @bp.route('/delete_appointment/<int:id>', methods=['GET','POST'])
 def delete_appointment(id):
     db.session.delete(Appointment.query.get(id))
@@ -128,6 +154,23 @@ def edit_appointment(id):
 
         db.session.add(appointment)
         db.session.commit()
-        flash("Added the appointment")
+        flash("Edited the appointment!")
         return redirect(url_for('main.single_appointment', id=id))
     return render_template("main/edit_appointment.html",form=form, appointment=appointment)
+
+@bp.route('/search_appointment/', methods=['GET','POST'])
+def search_appointment():
+    form = SearchForm()
+    if form.validate_on_submit():
+        return redirect(url_for('main.search_result', search_type=form.search_type.data,q=form.searchbox.data))
+    return render_template("main/search.html",form=form)
+
+@bp.route('/search_result/<string:search_type>/<string:q>')
+def search_result(search_type,q="None"):
+    if search_type == "name":
+        appointments = Appointment.query.filter(Appointment.customer_name.ilike("%" +q+ "%")).order_by(Appointment.date_time)
+    elif search_type == "title":
+        appointments = Appointment.query.filter(Appointment.title.ilike("%" +q+ "%")).order_by(Appointment.date_time)
+
+    appointments = appointments.all()
+    return render_template("main/list_appointments.html", appointments=appointments, filter="hide")
